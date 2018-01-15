@@ -1,0 +1,9 @@
+-cp src
+
+-D analyzer-optimize
+-dce full
+
+--macro Main.main()
+
+-cs cs_out
+-D erase-generics
