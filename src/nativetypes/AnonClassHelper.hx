@@ -11,7 +11,6 @@ class AnonClassHelper implements TypeHelper {
 	public var nullable = true;
 
 	var typePath:TypePath;
-	var gen:Generator;
 
 	public function new(gen:Generator, anon:AnonType, pos:Position, nameContext:NameContext) {
 		typePath = gen.makeTypePath(nameContext.pack, nameContext.name);

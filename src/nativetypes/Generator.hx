@@ -40,6 +40,10 @@ class Generator {
 					case [{pack: [], name: "IntKey"}, _]:
 						return IntKeyHelper.instance;
 
+					case [{pack: [], name: "Choice"}, [anonType]]:
+						if (nameContext != null)
+							return new ChoiceHelper(this, type, anonType, pos, nameContext);
+
 					case _ if (ab.meta.has(":coreType")):
 						return new BasicTypeHelper(type, false);
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using slapi.rambo;
 
 class Program
@@ -14,7 +13,15 @@ class Program
             name: "Hi",
             ready: true,
             someItems: new Dictionary<SomeKey, Some>(),
-            state: StateId.Building);
+            state: StateId.Building,
+            state2: GameData_state2.inProgress(0.5));
+
+
+        gameData.state2.Match(
+            done: result => { },
+            inProgress: progress => { },
+            c: v => { }
+        );
 
         Console.WriteLine(gameData.toStructure().ToString());
         Console.ReadKey();

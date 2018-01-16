@@ -5,14 +5,10 @@ typedef GameData = {
 	var level:Int;
 	var ready:Bool;
 	var heroId:HeroId;
-	// var someKey:SomeKey;
-
 	var state:Maybe<StateId>;
-	// var state:{id:StateId, endTime:Float};
 	var items:Array<{name:String}>;
-	// var some:Some;
 	var someItems:DynamicObject<SomeKey,Some>;
-	// @:optional var a:Maybe<SomeKey>;
+	var state2:Choice<{?done:Int, ?inProgress:Float, ?c:String}>;
 }
 
 @:enum abstract StateId(String) {
