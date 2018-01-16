@@ -2,6 +2,7 @@
 
 -D analyzer-optimize
 -dce full
+-D net-ver=40
 
 --macro Main.main()
 

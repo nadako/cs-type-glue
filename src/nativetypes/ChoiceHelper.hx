@@ -21,6 +21,7 @@ class ChoiceHelper implements TypeHelper {
 		var matchFields = new Array<ObjectField>();
 
 		var matchMethodArgs = new Array<FunctionArg>();
+		var matchMethodTArgs = new Array<FunctionArg>();
 		var matchMethodCases = new Array<Case>();
 
 		var toStructureCases = new Array<Case>();
@@ -89,6 +90,10 @@ class ChoiceHelper implements TypeHelper {
 				expr: macro $i{fieldName}.Invoke(this.$storageName)
 			});
 
+			matchMethodTArgs.push({
+				name: fieldName,
+				type: macro : cs.system.Func_2<$fieldTargetCT,TResult>
+			});
 
 			var fieldConvertBackExpr = fieldHelper.generateConvertBackExpr(macro this.$storageName);
 
@@ -114,11 +119,34 @@ class ChoiceHelper implements TypeHelper {
 		fields.push({
 			pos: pos,
 			name: "Match",
-			meta: [{name: ":final", pos: pos}],
+			meta: [
+				{name: ":final", pos: pos},
+				{name: ":overload", pos: pos}
+			],
 			kind: FFun({
 				args: matchMethodArgs,
 				ret: macro : Void,
 				expr: matchMethodExpr
+			}),
+		});
+
+		var matchMethodTExpr = {
+			pos: pos,
+			expr: ESwitch(macro this.__index, matchMethodCases, macro throw new cs.system.Exception("Invalid variant"))
+		};
+
+		fields.push({
+			pos: pos,
+			name: "Match",
+			meta: [
+				{name: ":final", pos: pos},
+				{name: ":overload", pos: pos}
+			],
+			kind: FFun({
+				args: matchMethodTArgs,
+				ret: macro : TResult,
+				expr: macro return $matchMethodTExpr,
+				params: [{name: "TResult"}],
 			}),
 		});
 

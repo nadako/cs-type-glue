@@ -17,10 +17,10 @@ class Program
             state2: GameData_state2.inProgress(0.5));
 
 
-        gameData.state2.Match(
-            done: result => { },
-            inProgress: progress => { },
-            c: v => { }
+        var o = gameData.state2.Match(
+            done: result => 1,
+            inProgress: progress => progress,
+            c: v => 1 + 3
         );
 
         Console.WriteLine(gameData.toStructure().ToString());
