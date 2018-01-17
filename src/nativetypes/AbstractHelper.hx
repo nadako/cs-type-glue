@@ -50,6 +50,16 @@ class AbstractHelper implements TypeHelper {
 			})
 		});
 
+		fields.push({
+			pos: ab.pos,
+			name: "toString",
+			kind: FFun({
+				args: [],
+				ret: macro : String,
+				expr: macro return untyped this.Value.ToString(),
+			})
+		});
+
 		var definition:TypeDefinition = {
 			pos: ab.pos,
 			pack: typePath.pack,
