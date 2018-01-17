@@ -83,18 +83,42 @@ class ChoiceHelper implements TypeHelper {
 				}
 			});
 
-			matchMethodArgs.push({
-				name: fieldName,
-				type: macro : cs.system.Action_1<$fieldTargetCT>
-			});
-			matchMethodCases.push({
-				values: [macro $v{fieldIndex}],
-				expr: macro $i{fieldName}.Invoke(this.$storageName)
-			});
+			var actionArg:FunctionArg = {name: fieldName, type: macro : cs.system.Action_1<$fieldTargetCT>};
+			var funcArg:FunctionArg = {name: fieldName, type: macro : cs.system.Func_2<$fieldTargetCT,TResult>};
+			var invokeExpr = macro $i{fieldName}.Invoke(this.$storageName);
+			var indexExpr = macro $v{fieldIndex};
 
-			matchMethodTArgs.push({
-				name: fieldName,
-				type: macro : cs.system.Func_2<$fieldTargetCT,TResult>
+			matchMethodArgs.push(actionArg);
+			matchMethodTArgs.push(funcArg);
+			matchMethodCases.push({values: [indexExpr], expr: invokeExpr});
+
+			var ifMethodName = "If" + fieldName.charAt(0).toUpperCase() + fieldName.substring(1);
+			fields.push({
+				pos: pos,
+				name: ifMethodName,
+				meta: [
+					{name: ":final", pos: pos},
+					{name: ":overload", pos: pos}
+				],
+				kind: FFun({
+					args: [actionArg],
+					ret: macro : Void,
+					expr: macro if (this.__index == $indexExpr) $invokeExpr
+				}),
+			});
+			fields.push({
+				pos: pos,
+				name: ifMethodName,
+				meta: [
+					{name: ":final", pos: pos},
+					{name: ":overload", pos: pos}
+				],
+				kind: FFun({
+					args: [funcArg, {name: "defaultValue", type: macro : TResult}],
+					ret: macro : TResult,
+					expr: macro return if (this.__index == $indexExpr) $invokeExpr else defaultValue,
+					params: [{name: "TResult"}],
+				}),
 			});
 
 			var fieldConvertBackExpr = fieldHelper.generateConvertBackExpr(macro this.$storageName);
