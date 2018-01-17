@@ -9,8 +9,11 @@ using haxe.macro.Tools;
 class Generator {
 	var packPrefix:String;
 
+	public var memo(default,null):TypeMemo;
+
 	public function new(packPrefix) {
 		this.packPrefix = packPrefix;
+		memo = new TypeMemo();
 	}
 
 	public function generate(type:Type, pos:Position, nameContext:Null<NameContext>):TypeHelper {

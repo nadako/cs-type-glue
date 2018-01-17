@@ -23,6 +23,10 @@ class AbstractHelper implements TypeHelper {
 		var underlyingType = ab.type;
 		var underlyingCT = underlyingType.toComplexType();
 		underlyingHelper = gen.generate(underlyingType, ab.pos, new NameContext(ab.pack, ab.name + "_underlying", ab.module, underlyingType));
+
+		if (gen.memo.define(typePath))
+			return;
+
 		var convertExpr = underlyingHelper.generateConvertExpr(macro (cast value : $underlyingCT));
 
 		var fields = new Array<Field>();

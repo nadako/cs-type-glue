@@ -11,11 +11,13 @@ class ChoiceHelper implements TypeHelper {
 	public var nullable = true;
 
 	var typePath:TypePath;
-	var gen:Generator;
 
 	public function new(gen:Generator, type:Type, anonType:Type, pos:Position, nameContext:NameContext) {
 		typePath = gen.makeTypePath(nameContext.pack, nameContext.name);
 		targetCT = TPath(typePath);
+
+		if (gen.memo.define(typePath))
+			return;
 
 		var fields = new Array<Field>();
 		var matchFields = new Array<ObjectField>();

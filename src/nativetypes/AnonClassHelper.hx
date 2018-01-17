@@ -16,6 +16,9 @@ class AnonClassHelper implements TypeHelper {
 		typePath = gen.makeTypePath(nameContext.pack, nameContext.name);
 		targetCT = TPath(typePath);
 
+		if (gen.memo.define(typePath))
+			return;
+
 		var fields = new Array<Field>();
 		var ctorExprs = new Array<Expr>();
 		var ctorAssignArgs = new Array<FunctionArg>();

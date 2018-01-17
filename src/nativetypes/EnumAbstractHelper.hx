@@ -51,6 +51,9 @@ class EnumAbstractHelper implements TypeHelper {
 			}
 		}
 
+		if (gen.memo.define(typePath))
+			return;
+
 		var definition:TypeDefinition = {
 			pos: ab.pos,
 			pack: typePath.pack,
