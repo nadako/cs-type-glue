@@ -36,5 +36,9 @@ class MaybeHelper implements TypeHelper {
 		var convertBackExpr = helper.generateConvertBackExpr(macro v.Value);
 		return macro {var v = $sourceExpr; if (v.HasValue) $convertBackExpr else null; }
 	}
+
+	public function generateDispatchPassThroughExpr(valueExpr:Expr):Expr {
+		return helper.generateDispatchPassThroughExpr(if (helper.nullable) valueExpr else macro $valueExpr.Value);
+	}
 }
 #end

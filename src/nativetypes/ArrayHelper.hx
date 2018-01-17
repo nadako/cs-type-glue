@@ -43,5 +43,9 @@ class ArrayHelper implements TypeHelper {
 			dst;
 		}
 	}
+
+	public function generateDispatchPassThroughExpr(valueExpr:Expr):Expr {
+		return macro throw new cs.system.Exception("Invalid passthrough path");
+	}
 }
 #end

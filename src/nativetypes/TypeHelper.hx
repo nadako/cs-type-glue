@@ -8,5 +8,6 @@ interface TypeHelper {
 	var nullable(default,never):Bool;
 	function generateConvertExpr(sourceExpr:Expr):Expr;
 	function generateConvertBackExpr(sourceExpr:Expr):Expr;
+	function generateDispatchPassThroughExpr(valueExpr:Expr):Expr;
 }
 #end

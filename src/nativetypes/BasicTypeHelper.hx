@@ -22,5 +22,9 @@ class BasicTypeHelper implements TypeHelper {
 	public function generateConvertBackExpr(sourceExpr:Expr):Expr {
 		return sourceExpr;
 	}
+
+	public function generateDispatchPassThroughExpr(valueExpr:Expr):Expr {
+		return macro throw new cs.system.Exception("Invalid passthrough path");
+	}
 }
 #end

@@ -25,6 +25,7 @@ class AnonClassHelper implements TypeHelper {
 		var ctorAssignExprs = new Array<Expr>();
 		var convertBackInitFields = new Array<ObjectField>();
 		var convertBackOptionalFieldExprs = new Array<Expr>();
+		var dispatchCases = new Array<Case>();
 
 		for (field in anon.fields) {
 			var fieldName = field.name;
@@ -82,6 +83,19 @@ class AnonClassHelper implements TypeHelper {
 				]
 			});
 
+			var fieldOriginalCT = fieldType.toComplexType();
+			var passThroughExpr = fieldHelper.generateDispatchPassThroughExpr(getFieldValueExpr(storageName));
+			var passThroughValueExpr = fieldHelper.generateConvertExpr(macro (value : $fieldOriginalCT));
+			dispatchCases.push({
+				values: [macro $v{fieldName}],
+				expr: macro {
+					if (passThrough)
+						$passThroughExpr;
+					else
+						${getFieldDispatchExpr(storageName, passThroughValueExpr)};
+				},
+			});
+
 			var convertExpr = fieldHelper.generateConvertExpr(macro @:pos(field.pos) value.$fieldName);
 			ctorExprs.push(getCtorAssignExpr(storageName, convertExpr));
 		}
@@ -127,6 +141,27 @@ class AnonClassHelper implements TypeHelper {
 			})
 		});
 
+		fields.push({
+			pos: pos,
+			name: "Dispatch",
+			access: [APublic],
+			kind: FFun({
+				args: [
+					{name: "path", type: macro : cs.system.collections.generic.Stack_1<String>},
+					{name: "value", type: macro : Any},
+				],
+				ret: macro : Void,
+				expr: macro {
+					var name = path.Pop();
+					var passThrough = path.Count > 0;
+					${{
+						pos: pos,
+						expr: ESwitch(macro name, dispatchCases, macro throw new cs.system.Exception("Invalid dispatching property"))
+					}};
+				}
+			})
+		});
+
 		var definition:TypeDefinition = {
 			pos: pos,
 			pack: typePath.pack,
@@ -143,19 +178,23 @@ class AnonClassHelper implements TypeHelper {
 	}
 
 	function getFieldValueExpr(field:String):Expr {
-		return macro this.$field;
+		return macro this.$field.Value;
 	}
 
 	function getCtorAssignExpr(field:String, value:Expr):Expr {
-		return macro this.$field = $value;
+		return macro this.$field = new unirx.ReactiveProperty_1($value);
 	}
 
 	function getFieldStorageCT(valueCT:ComplexType):ComplexType {
-		return valueCT;
+		return macro : unirx.ReactiveProperty_1<$valueCT>;
 	}
 
 	function getFieldPublicCT(valueCT:ComplexType):ComplexType {
-		return valueCT;
+		return macro : unirx.IReadOnlyReactiveProperty_1<$valueCT>;
+	}
+
+	function getFieldDispatchExpr(field:String, valueExpr:Expr):Expr {
+		return macro this.$field.Value = $valueExpr;
 	}
 
 	public function generateConvertExpr(sourceExpr:Expr):Expr {
@@ -164,6 +203,10 @@ class AnonClassHelper implements TypeHelper {
 
 	public function generateConvertBackExpr(sourceExpr:Expr):Expr {
 		return macro @:pos(sourceExpr.pos) $sourceExpr.toStructure();
+	}
+
+	public function generateDispatchPassThroughExpr(valueExpr:Expr):Expr {
+		return macro $valueExpr.Dispatch(path, value);
 	}
 }
 #end

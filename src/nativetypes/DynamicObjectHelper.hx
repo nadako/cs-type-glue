@@ -53,5 +53,9 @@ class DynamicObjectHelper implements TypeHelper {
 			dst;
 		}
 	}
+
+	public function generateDispatchPassThroughExpr(valueExpr:Expr):Expr {
+		return macro throw new cs.system.Exception("TODO");
+	}
 }
 #end

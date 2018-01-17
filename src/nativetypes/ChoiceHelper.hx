@@ -248,5 +248,9 @@ class ChoiceHelper implements TypeHelper {
 	public function generateConvertBackExpr(sourceExpr:Expr):Expr {
 		return macro $sourceExpr.toStructure();
 	}
+
+	public function generateDispatchPassThroughExpr(valueExpr:Expr):Expr {
+		return macro throw new cs.system.Exception("Invalid passthrough path");
+	}
 }
 #end

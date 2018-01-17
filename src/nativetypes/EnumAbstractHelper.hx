@@ -102,5 +102,9 @@ class EnumAbstractHelper implements TypeHelper {
 	public function generateConvertBackExpr(sourceExpr:Expr):Expr {
 		return macro $helperTypePathExpr.fromNative($sourceExpr);
 	}
+
+	public function generateDispatchPassThroughExpr(valueExpr:Expr):Expr {
+		return macro throw new cs.system.Exception("Invalid passthrough path");
+	}
 }
 #end

@@ -83,5 +83,9 @@ class AbstractHelper implements TypeHelper {
 		var convertBackExpr = underlyingHelper.generateConvertBackExpr(macro $sourceExpr.Value);
 		return macro (cast $convertBackExpr : $originalCT);
 	}
+
+	public function generateDispatchPassThroughExpr(valueExpr:Expr):Expr {
+		return underlyingHelper.generateDispatchPassThroughExpr(macro $valueExpr.Value);
+	}
 }
 #end

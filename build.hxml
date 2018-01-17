@@ -3,8 +3,11 @@
 -D analyzer-optimize
 -dce full
 -D net-ver=40
+-net-lib UniRx.dll
 
 --macro Main.main()
 
--cs cs_out
+-cs ../testuuu/Assets/Scripts/generated
 -D erase-generics
+-D unity
+-D no-compilation
