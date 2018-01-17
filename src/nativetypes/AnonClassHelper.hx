@@ -42,36 +42,38 @@ class AnonClassHelper implements TypeHelper {
 			}
 
 			var fieldHelper = gen.generate(fieldType, field.pos, nameContext.field(fieldName, fieldType));
+			var fieldTargetCT = fieldHelper.targetCT;
 
-			var convertBackExpr = fieldHelper.generateConvertBackExpr(macro this.$storageName);
+			var convertBackExpr = fieldHelper.generateConvertBackExpr(getFieldValueExpr(storageName));
 			if (!isOptional)
 				convertBackInitFields.push({field: fieldName, expr: convertBackExpr});
 			else
 				convertBackOptionalFieldExprs.push(macro if (this.$storageName != null) instance.$fieldName = $convertBackExpr);
 
-			ctorAssignArgs.push({name: fieldName, type: fieldHelper.targetCT});
-			ctorAssignExprs.push(macro this.$storageName = $i{fieldName});
+			ctorAssignArgs.push({name: fieldName, type: fieldTargetCT});
+			ctorAssignExprs.push(getCtorAssignExpr(storageName, macro $i{fieldName}));
 
 			fields.push({
 				pos: field.pos,
 				name: storageName,
-				kind: FVar(fieldHelper.targetCT),
+				kind: FVar(getFieldStorageCT(fieldTargetCT)),
 				meta: [{name: ":protected", pos: field.pos}]
 			});
+
+			var publicCT = getFieldPublicCT(fieldTargetCT);
 
 			fields.push({
 				pos: field.pos,
 				name: fieldName,
-				kind: FProp("get", "never", fieldHelper.targetCT),
+				kind: FProp("get", "never", publicCT),
 				meta: [{name: ":property", pos: field.pos}]
 			});
-
 			fields.push({
 				pos: field.pos,
 				name: "get_" + fieldName,
 				kind: FFun({
 					args: [],
-					ret: fieldHelper.targetCT,
+					ret: publicCT,
 					expr: macro @:pos(field.pos) return this.$storageName
 				}),
 				meta: [
@@ -81,7 +83,7 @@ class AnonClassHelper implements TypeHelper {
 			});
 
 			var convertExpr = fieldHelper.generateConvertExpr(macro @:pos(field.pos) value.$fieldName);
-			ctorExprs.push(macro @:pos(field.pos) this.$storageName = $convertExpr);
+			ctorExprs.push(getCtorAssignExpr(storageName, convertExpr));
 		}
 
 		var originalCT = nameContext.originalType.toComplexType();
@@ -138,6 +140,22 @@ class AnonClassHelper implements TypeHelper {
 		};
 
 		Context.defineType(definition, nameContext.module);
+	}
+
+	function getFieldValueExpr(field:String):Expr {
+		return macro this.$field;
+	}
+
+	function getCtorAssignExpr(field:String, value:Expr):Expr {
+		return macro this.$field = $value;
+	}
+
+	function getFieldStorageCT(valueCT:ComplexType):ComplexType {
+		return valueCT;
+	}
+
+	function getFieldPublicCT(valueCT:ComplexType):ComplexType {
+		return valueCT;
 	}
 
 	public function generateConvertExpr(sourceExpr:Expr):Expr {
