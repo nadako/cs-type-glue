@@ -24,7 +24,6 @@ typedef User = Player;
 
 typedef Player = {
 	var name:String;
-	var friend:Player;
 	var choice:State;
 	var state:StateId;
 }
