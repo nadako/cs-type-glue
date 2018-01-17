@@ -51,7 +51,7 @@ class Generator {
 						return new BasicTypeHelper(type, false);
 
 					case _ if (ab.meta.has(":enum")):
-						return new EnumAbstractHelper(this, ab);
+						return new EnumAbstractHelper(this, ab, type);
 
 					case _:
 						return new AbstractHelper(this, ab, type);

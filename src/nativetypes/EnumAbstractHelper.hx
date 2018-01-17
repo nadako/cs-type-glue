@@ -7,24 +7,31 @@ import haxe.macro.Type;
 using haxe.macro.Tools;
 
 class EnumAbstractHelper implements TypeHelper {
+	static inline var HELPER_POSTFIX = "__Helper";
+
 	public var targetCT:ComplexType;
 	public var nullable = false;
 
-	var cases:Array<Case>;
-	var backCases:Array<Case>;
+	var helperTypePathExpr:Expr;
 
-	public function new(gen:Generator, ab:AbstractType) {
+	public function new(gen:Generator, ab:AbstractType, type:Type) {
 		var typePath = gen.makeTypePath(ab.pack, ab.name);
 		targetCT = TPath(typePath);
 
+		var helperClassName = typePath.name + HELPER_POSTFIX;
+		helperTypePathExpr = macro $p{typePath.pack.concat([helperClassName])};
+
+		if (gen.memo.define(typePath))
+			return;
+
+		var originalCT = type.toComplexType();
 		var targetTPExpr = macro @:pos(ab.pos) $p{typePath.pack.concat([typePath.name])};
 		var sourceTPExpr = macro @:pos(ab.pos) $p{ab.module.split(".").concat([ab.name])};
 
 		var fields = new Array<Field>();
 
-		// TODO: стоит генерить хелпер-класс для конвертации
-		cases = new Array<Case>();
-		backCases = new Array<Case>();
+		var cases = new Array<Case>();
+		var backCases = new Array<Case>();
 
 		for (field in ab.impl.get().statics.get()) {
 			if (field.meta.has(":enum") && field.meta.has(":impl")) {
@@ -51,8 +58,27 @@ class EnumAbstractHelper implements TypeHelper {
 			}
 		}
 
-		if (gen.memo.define(typePath))
-			return;
+		var definition = macro class $helperClassName {
+			public static function toNative(value:$originalCT):$targetCT {
+				return ${{
+					pos: ab.pos,
+					expr: ESwitch(macro value, cases, macro throw new cs.system.Exception("Invalid value"))
+				}};
+			}
+
+			public static function fromNative(value:$targetCT):$originalCT {
+				return ${{
+					pos: ab.pos,
+					expr: ESwitch(macro value, backCases, macro throw new cs.system.Exception("Invalid value"))
+				}};
+			}
+		};
+		definition.pack = typePath.pack;
+		definition.meta = [
+			{name: ":nativeGen", pos: ab.pos},
+			{name: ":keep", pos: ab.pos},
+		];
+		Context.defineType(definition, ab.module);
 
 		var definition:TypeDefinition = {
 			pos: ab.pos,
@@ -70,17 +96,11 @@ class EnumAbstractHelper implements TypeHelper {
 	}
 
 	public function generateConvertExpr(sourceExpr:Expr):Expr {
-		return {
-			pos: sourceExpr.pos,
-			expr: ESwitch(sourceExpr, cases, macro @:pos(sourceExpr.pos) throw "Invalid value")
-		};
+		return macro $helperTypePathExpr.toNative($sourceExpr);
 	}
 
 	public function generateConvertBackExpr(sourceExpr:Expr):Expr {
-		return {
-			pos: sourceExpr.pos,
-			expr: ESwitch(sourceExpr, backCases, macro @:pos(sourceExpr.pos) throw "Invalid value")
-		};
+		return macro $helperTypePathExpr.fromNative($sourceExpr);
 	}
 }
 #end
