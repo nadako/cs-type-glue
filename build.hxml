@@ -3,11 +3,11 @@
 -D analyzer-optimize
 -dce full
 -D net-ver=40
--net-lib UniRx.dll
+-net-lib unityproject/Assets/Plugins/UniRx.dll
 
 --macro Main.main()
 
--cs ../testuuu/Assets/Scripts/generated
+-cs unityproject/Assets/Scripts/generated
 -D erase-generics
 -D unity
 -D no-compilation
