@@ -25,7 +25,21 @@ class DynamicObjectHelper implements TypeHelper {
 		keyTargetCT = keyHelper.targetCT;
 		valueOriginalCT = valueType.toComplexType();
 		valueTargetCT = valueHelper.targetCT;
-		targetCT = macro : cs.system.collections.generic.Dictionary_2<$keyTargetCT, $valueTargetCT>;
+		targetCT = getTargetCT();
+	}
+
+	function getTargetCT():ComplexType {
+		return macro : nativetypes.ReactiveDispatchingDictionary<$keyTargetCT, $valueTargetCT>;
+	}
+
+	function getStorageInitExpr():Expr {
+		var keyConvertExpr = keyHelper.generateConvertExpr(macro (cast key : $keyOriginalCT));
+		var valueConvertExpr = valueHelper.generateConvertExpr(macro (value : $valueOriginalCT));
+
+		return macro new nativetypes.ReactiveDispatchingDictionary<$keyTargetCT, $valueTargetCT>(
+			(key:String) -> $keyConvertExpr,
+			(value:Any) -> $valueConvertExpr
+		);
 	}
 
 	public function generateConvertExpr(sourceExpr:Expr):Expr {
@@ -33,7 +47,7 @@ class DynamicObjectHelper implements TypeHelper {
 		var valueConvertExpr = valueHelper.generateConvertExpr(macro @:pos(sourceExpr.pos) src[key]);
 		return macro @:pos(sourceExpr.pos) {
 			var src = $sourceExpr;
-			var dst = new cs.system.collections.generic.Dictionary_2<$keyTargetCT, $valueTargetCT>();
+			var dst = ${getStorageInitExpr()};
 			for (key in src.keys())
 				dst.set_Item($keyConvertExpr, $valueConvertExpr);
 			dst;

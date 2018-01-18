@@ -170,7 +170,7 @@ class AnonClassHelper implements TypeHelper {
 				{name: ":nativeGen", pos: pos},
 				{name: ":keep", pos: pos},
 			],
-			kind: TDClass(),
+			kind: TDClass(null, [{pack: ["nativetypes"], name: "IDispatcher"}]),
 			fields: fields,
 		};
 
