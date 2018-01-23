@@ -9,5 +9,6 @@ interface TypeHelper {
 	function generateConvertExpr(sourceExpr:Expr):Expr;
 	function generateConvertBackExpr(sourceExpr:Expr):Expr;
 	function generateDispatchPassThroughExpr(valueExpr:Expr):Expr;
+	function generateNativeCtorAssign(sourceExpr:Expr):{type:ComplexType, expr:Expr};
 }
 #end

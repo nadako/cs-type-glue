@@ -42,6 +42,21 @@ class DynamicObjectHelper implements TypeHelper {
 		);
 	}
 
+	public function generateNativeCtorAssign(sourceExpr:Expr):{type:ComplexType, expr:Expr} {
+		return {
+			type: macro : cs.system.collections.generic.Dictionary_2<$keyTargetCT, $valueTargetCT>,
+			expr: {
+				var keyConvertExpr = keyHelper.generateConvertExpr(macro (cast key : $keyOriginalCT));
+				var valueConvertExpr = valueHelper.generateConvertExpr(macro (value : $valueOriginalCT));
+				macro new nativetypes.ReactiveDispatchingDictionary<$keyTargetCT, $valueTargetCT>(
+					(key:String) -> $keyConvertExpr,
+					(value:Any) -> $valueConvertExpr,
+					$sourceExpr
+				);
+			}
+		};
+	}
+
 	public function generateConvertExpr(sourceExpr:Expr):Expr {
 		var keyConvertExpr = keyHelper.generateConvertExpr(macro @:pos(sourceExpr.pos) key);
 		var valueConvertExpr = valueHelper.generateConvertExpr(macro @:pos(sourceExpr.pos) src[key]);

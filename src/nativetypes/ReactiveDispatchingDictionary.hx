@@ -1,6 +1,7 @@
 package nativetypes;
 
 import cs.system.collections.generic.Stack_1 as Stack;
+import cs.system.collections.generic.Dictionary_2 as Dictionary;
 import cs.system.Func_2 as Func;
 
 @:keep
@@ -9,8 +10,16 @@ class ReactiveDispatchingDictionary<K,V> extends unirx.ReactiveDictionary_2<K,V>
 	@:protected var convertKey:Func<String,K>;
 	@:protected var convertValue:Func<Any,V>;
 
-	public function new(convertKey, convertValue) {
+	@:overload
+	public function new(convertKey:Func<String,K>, convertValue:Func<Any,V>) {
 		super();
+		this.convertKey = convertKey;
+		this.convertValue = convertValue;
+	}
+
+	@:overload
+	public function new(convertKey:Func<String,K>, convertValue:Func<Any,V>, inner:Dictionary<K,V>) {
+		super(inner);
 		this.convertKey = convertKey;
 		this.convertValue = convertValue;
 	}

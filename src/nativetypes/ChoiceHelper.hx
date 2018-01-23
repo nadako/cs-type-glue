@@ -252,5 +252,9 @@ class ChoiceHelper implements TypeHelper {
 	public function generateDispatchPassThroughExpr(valueExpr:Expr):Expr {
 		return macro throw new cs.system.Exception("Invalid passthrough path");
 	}
+
+	public function generateNativeCtorAssign(sourceExpr:Expr):{type:ComplexType, expr:Expr} {
+		return {type: targetCT, expr: sourceExpr};
+	}
 }
 #end

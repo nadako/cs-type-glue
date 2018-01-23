@@ -87,5 +87,9 @@ class AbstractHelper implements TypeHelper {
 	public function generateDispatchPassThroughExpr(valueExpr:Expr):Expr {
 		return underlyingHelper.generateDispatchPassThroughExpr(macro $valueExpr.Value);
 	}
+
+	public function generateNativeCtorAssign(sourceExpr:Expr):{type:ComplexType, expr:Expr} {
+		return {type: targetCT, expr: sourceExpr};
+	}
 }
 #end

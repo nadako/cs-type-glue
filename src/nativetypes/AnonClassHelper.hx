@@ -51,8 +51,10 @@ class AnonClassHelper implements TypeHelper {
 			else
 				convertBackOptionalFieldExprs.push(macro if (this.$storageName != null) instance.$fieldName = $convertBackExpr);
 
-			ctorAssignArgs.push({name: fieldName, type: fieldTargetCT});
-			ctorAssignExprs.push(getCtorAssignExpr(storageName, macro $i{fieldName}));
+
+			var assign = fieldHelper.generateNativeCtorAssign(macro $i{fieldName});
+			ctorAssignArgs.push({name: fieldName, type: assign.type});
+			ctorAssignExprs.push(getCtorAssignExpr(storageName, assign.expr));
 
 			fields.push({
 				pos: field.pos,
@@ -207,6 +209,10 @@ class AnonClassHelper implements TypeHelper {
 
 	public function generateDispatchPassThroughExpr(valueExpr:Expr):Expr {
 		return macro $valueExpr.Dispatch(path, value);
+	}
+
+	public function generateNativeCtorAssign(sourceExpr:Expr):{type:ComplexType, expr:Expr} {
+		return {type: targetCT, expr: sourceExpr};
 	}
 }
 #end

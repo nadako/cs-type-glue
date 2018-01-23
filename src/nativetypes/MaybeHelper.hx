@@ -40,5 +40,9 @@ class MaybeHelper implements TypeHelper {
 	public function generateDispatchPassThroughExpr(valueExpr:Expr):Expr {
 		return helper.generateDispatchPassThroughExpr(if (helper.nullable) valueExpr else macro $valueExpr.Value);
 	}
+
+	public function generateNativeCtorAssign(sourceExpr:Expr):{type:ComplexType, expr:Expr} {
+		return {type: targetCT, expr: sourceExpr};
+	}
 }
 #end
