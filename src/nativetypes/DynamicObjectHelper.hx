@@ -18,6 +18,8 @@ class DynamicObjectHelper implements TypeHelper {
 	var valueTargetCT:ComplexType;
 	var valueHelper:TypeHelper;
 
+	var dictHelperTpExpr:Expr;
+
 	public function new(gen:Generator, pos:Position, nameContext:NameContext, keyType:Type, valueType:Type, type:Type) {
 		keyHelper = gen.generate(keyType, pos, null);
 		valueHelper = gen.generate(valueType, pos, nameContext.element(valueType));
@@ -25,66 +27,52 @@ class DynamicObjectHelper implements TypeHelper {
 		keyTargetCT = keyHelper.targetCT;
 		valueOriginalCT = valueType.toComplexType();
 		valueTargetCT = valueHelper.targetCT;
-		targetCT = getTargetCT();
-	}
+		targetCT = macro : nativetypes.ReactiveDispatchingDictionary<$keyTargetCT, $valueTargetCT>;
 
-	function getTargetCT():ComplexType {
-		return macro : nativetypes.ReactiveDispatchingDictionary<$keyTargetCT, $valueTargetCT>;
-	}
+		var dictHelperTypePath = gen.makeTypePath(nameContext.pack, nameContext.name + "__DictionaryHelper");
+		dictHelperTpExpr = macro $p{dictHelperTypePath.pack.concat([dictHelperTypePath.name])}.instance;
+		if (gen.memo.define(dictHelperTypePath))
+			return;
 
-	function getStorageInitExpr():Expr {
 		var keyConvertExpr = keyHelper.generateConvertExpr(macro (cast key : $keyOriginalCT));
 		var valueConvertExpr = valueHelper.generateConvertExpr(macro (value : $valueOriginalCT));
+		var keyConvertBackExpr = keyHelper.generateConvertBackExpr(macro key);
+		var valueConvertBackExpr = valueHelper.generateConvertBackExpr(macro value);
 
-		return macro new nativetypes.ReactiveDispatchingDictionary<$keyTargetCT, $valueTargetCT>(
-			(key:String) -> $keyConvertExpr,
-			(value:Any) -> $valueConvertExpr
-		);
+		var dictHelperName = dictHelperTypePath.name;
+		var dictHelperDefinition = macro class $dictHelperName implements nativetypes.ReactiveDispatchingDictionary.DictionaryHelper<$keyTargetCT, $valueTargetCT> {
+			public static var instance = new $dictHelperTypePath();
+			@:protected function new() {}
+			public function convertKey(key:String):$keyTargetCT return $keyConvertExpr;
+			public function convertKeyBack(key:$keyTargetCT):String return $keyConvertBackExpr;
+			public function convertValue(value:Any):$valueTargetCT return $valueConvertExpr;
+			public function convertValueBack(value:$valueTargetCT):Any return $valueConvertBackExpr;
+		};
+		dictHelperDefinition.pack = dictHelperTypePath.pack;
+		dictHelperDefinition.meta = [
+			{pos: pos, name: ":nativeGen"},
+			{pos: pos, name: ":final"},
+		];
+		Context.defineType(dictHelperDefinition, nameContext.module);
 	}
 
 	public function generateNativeCtorAssign(sourceExpr:Expr):{type:ComplexType, expr:Expr} {
 		return {
 			type: macro : cs.system.collections.generic.Dictionary_2<$keyTargetCT, $valueTargetCT>,
-			expr: {
-				var keyConvertExpr = keyHelper.generateConvertExpr(macro (cast key : $keyOriginalCT));
-				var valueConvertExpr = valueHelper.generateConvertExpr(macro (value : $valueOriginalCT));
-				macro new nativetypes.ReactiveDispatchingDictionary<$keyTargetCT, $valueTargetCT>(
-					(key:String) -> $keyConvertExpr,
-					(value:Any) -> $valueConvertExpr,
-					$sourceExpr
-				);
-			}
+			expr: macro new nativetypes.ReactiveDispatchingDictionary<$keyTargetCT, $valueTargetCT>($dictHelperTpExpr, $sourceExpr)
 		};
 	}
 
 	public function generateConvertExpr(sourceExpr:Expr):Expr {
-		var keyConvertExpr = keyHelper.generateConvertExpr(macro @:pos(sourceExpr.pos) key);
-		var valueConvertExpr = valueHelper.generateConvertExpr(macro @:pos(sourceExpr.pos) src[key]);
-		return macro @:pos(sourceExpr.pos) {
-			var src = $sourceExpr;
-			var dst = ${getStorageInitExpr()};
-			for (key in src.keys())
-				dst.set_Item($keyConvertExpr, $valueConvertExpr);
-			dst;
-		}
+		return macro new nativetypes.ReactiveDispatchingDictionary<$keyTargetCT, $valueTargetCT>($dictHelperTpExpr, $sourceExpr);
 	}
 
 	public function generateConvertBackExpr(sourceExpr:Expr):Expr {
-		var keyConvertBackExpr = keyHelper.generateConvertBackExpr(macro @:pos(sourceExpr.pos) srcEnum.Current.Key);
-		var valueConvertBackExpr = valueHelper.generateConvertBackExpr(macro @:pos(sourceExpr.pos) srcEnum.Current.Value);
-		return macro @:pos(sourceExpr.pos) {
-			var src = $sourceExpr;
-			var srcEnum = src.GetEnumerator();
-			var dst = new DynamicObject<$keyOriginalCT, $valueOriginalCT>();
-			while (srcEnum.MoveNext()) {
-				dst[$keyConvertBackExpr] = $valueConvertBackExpr;
-			}
-			dst;
-		}
+		return macro $sourceExpr.toDynamicObject();
 	}
 
 	public function generateDispatchPassThroughExpr(valueExpr:Expr):Expr {
-		return macro throw new cs.system.Exception("TODO");
+		return macro $valueExpr.Dispatch(path, value);
 	}
 }
 #end
